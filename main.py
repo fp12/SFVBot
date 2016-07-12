@@ -1,25 +1,17 @@
-import aiohttp
-import asyncio
 import os
+import psycopg2
+import urlparse
 
-CHALLONGE_API_URL = "api.challonge.com/v1"
-url = "https://%s/tournaments.xml" % (CHALLONGE_API_URL)
+urlparse.uses_netloc.append("postgres")
+url = urlparse.urlparse(os.environ["DATABASE_URL"])
 
-params = {'tournament[name]': 'testmyherokusetup', 'tournament[url]': 'test_1', 'tournament[tournament_type]': 'swiss'}
-"""
-with aiohttp.ClientSession() as session:
-    async with session.post(url, params=params, auth=aiohttp.BasicAuth('fp12', os.getenv('challonge_apikey', ''))) as resp:
-        print(resp.status)
-        print(await resp.text())
+conn = psycopg2.connect(
+    database=url.path[1:],
+    user=url.username,
+    password=url.password,
+    host=url.hostname,
+    port=url.port
+)
 
-async with EXPR as VAR:
-    BLOCK
-"""
-with aiohttp.ClientSession() as session:
-    mgr = session.post(url, params=params, auth=aiohttp.BasicAuth('fp12', os.getenv('challonge_apikey', '')))
-    aexit = type(mgr).__aexit__
-    aenter = type(mgr).__aenter__(mgr)
-    exc = True
-
-    resp = aenter
-    aexit(mgr, None, None, None)
+cur = conn.cursor()
+cur.execute("CREATE TABLE test (id serial PRIMARY KEY, num integer, data varchar);")
